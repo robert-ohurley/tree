@@ -14,13 +14,13 @@ type Formatter struct {
 
 var sb = Formatter{}
 
-func (sb *Formatter) getTabs(n *Node) string {
+func (sb *Formatter) getPreceedingText(d int) string {
 	sb.Reset()
 
-	sb.WriteString("|")
-	for i := 0; i <= n.depth; i++ {
-		sb.WriteString(" ")
+	for i := 0; i < d; i++ {
+		sb.WriteString("|\t")
 	}
+	sb.WriteString("|__>")
 
 	return sb.String()
 }
@@ -43,29 +43,40 @@ func (s *Stack) pop() *Node {
 
 func (s *Stack) print() {
 	for _, item := range s.stack {
-		if item.isDir == true {
-			fmt.Println(item.name)
-			fmt.Print("\n")
+		if item.isDir == true && string(item.baseName[0]) != string(".") {
+			tabs := sb.getPreceedingText(item.depth)
+			fmt.Println(tabs, item.getFullPath())
 		} else {
-			tabs := sb.getTabs(item)
-			fmt.Println(tabs, item.name)
-			fmt.Print("\n")
+			tabs := sb.getPreceedingText(item.depth)
+			fmt.Println(tabs, "", item.getFullPath())
 		}
 	}
 }
 
 type Node struct {
-	name    string
-	files   []*Node
-	subDirs []*Node
-	depth   int
-	isDir   bool
+	baseName   string
+	parentName string
+	files      []*Node
+	subDirs    []*Node
+	depth      int
+	isDir      bool
 }
 
-func NewNode(name string, depth int, isDir bool) *Node {
+func (n *Node) getFullPath() string {
+	return n.parentName + n.baseName
+}
+
+func NewNode(basename, parentName string, depth int, isDir bool) *Node {
 	files := []*Node{}
 	subDirs := []*Node{}
-	return &Node{name, files, subDirs, depth, isDir}
+	return &Node{
+		baseName:   basename,
+		parentName: parentName,
+		files:      files,
+		subDirs:    subDirs,
+		depth:      depth,
+		isDir:      isDir,
+	}
 }
 
 func dfs(node *Node) {
@@ -84,9 +95,9 @@ func main() {
 	if len(os.Args) != 2 {
 		log.Fatal("Please provide a directory")
 	}
-	root := NewNode(os.Args[1], 0, true)
 
-	items, err := os.ReadDir(root.name)
+	root := NewNode(os.Args[1], "", 0, true)
+	items, err := os.ReadDir(root.baseName)
 
 	if err != nil {
 		fmt.Println(err)
@@ -102,13 +113,13 @@ func createTree(items []fs.DirEntry, parent *Node) {
 		depth := parent.depth + 1
 
 		if isDir := item.IsDir(); isDir == true {
-			subDirName := parent.name + "/" + item.Name()
-			subDirNode := NewNode(subDirName, depth, true)
-			subDirFiles, _ := os.ReadDir(subDirName)
+			parentDir := parent.baseName + "/"
+			subDirNode := NewNode(item.Name(), parentDir, depth, true)
+			subDirFiles, _ := os.ReadDir(parentDir + item.Name())
 			parent.subDirs = append(parent.subDirs, subDirNode)
 			createTree(subDirFiles, subDirNode)
 		} else {
-			parent.files = append(parent.files, NewNode(item.Name(), depth, false))
+			parent.files = append(parent.files, NewNode(item.Name(), parent.baseName+"/", depth, false))
 		}
 	}
 }
