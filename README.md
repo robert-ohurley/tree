@@ -31,7 +31,7 @@ Before you begin, make sure you have the following installed on your system:
 
 
    ```bash
-   go install
+   tree
    ```
 
 ## Options
