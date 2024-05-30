@@ -1,6 +1,8 @@
 
 # Installing Tree
 
+![image](https://github.com/robert-ohurley/tree/assets/96722504/bfa12aed-5383-4a13-8e03-fbc54aed5d94)
+
 ## Prerequisites
 
 Before you begin, make sure you have the following installed on your system:
