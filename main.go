@@ -1,12 +1,16 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"strings"
 )
+
+var dir, _ = os.Getwd()
+var showHiddenFiles = flag.Bool("h", false, "Show hidden files")
+var selectedDir = flag.String("d", dir, "Directory to print")
 
 type Formatter struct {
 	strings.Builder
@@ -14,13 +18,18 @@ type Formatter struct {
 
 var sb = Formatter{}
 
-func (sb *Formatter) getPreceedingText(d int) string {
+func (sb *Formatter) GetIndentation(d int, isDir bool) string {
 	sb.Reset()
 
 	for i := 0; i < d; i++ {
 		sb.WriteString("|\t")
 	}
-	sb.WriteString("|__>")
+
+	if isDir == true {
+		sb.WriteString("|\t")
+	} else {
+		sb.WriteString("|__>")
+	}
 
 	return sb.String()
 }
@@ -43,12 +52,14 @@ func (s *Stack) pop() *Node {
 
 func (s *Stack) print() {
 	for _, item := range s.stack {
-		if item.isDir == true && string(item.baseName[0]) != string(".") {
-			tabs := sb.getPreceedingText(item.depth)
-			fmt.Println(tabs, item.getFullPath())
+		//
+
+		if item.isDir == true {
+			tabs := sb.GetIndentation(item.depth, item.isDir)
+			fmt.Println(tabs, item.FullPath())
 		} else {
-			tabs := sb.getPreceedingText(item.depth)
-			fmt.Println(tabs, "", item.getFullPath())
+			tabs := sb.GetIndentation(item.depth, item.isDir)
+			fmt.Println(tabs, "", item.baseName)
 		}
 	}
 }
@@ -62,16 +73,22 @@ type Node struct {
 	isDir      bool
 }
 
-func (n *Node) getFullPath() string {
-	return n.parentName + n.baseName
+func (n *Node) FullPath() string {
+	if n.isDir == true {
+		//TODO: may need a / inserted in the middle here.
+		return n.parentName + n.baseName + "/"
+	} else {
+		return n.parentName + n.baseName
+	}
+
 }
 
-func NewNode(basename, parentName string, depth int, isDir bool) *Node {
+func NewNode(parentName, baseName string, depth int, isDir bool) *Node {
 	files := []*Node{}
 	subDirs := []*Node{}
 	return &Node{
-		baseName:   basename,
 		parentName: parentName,
+		baseName:   baseName,
 		files:      files,
 		subDirs:    subDirs,
 		depth:      depth,
@@ -92,12 +109,14 @@ func dfs(node *Node) {
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatal("Please provide a directory")
-	}
+	var root *Node
 
-	root := NewNode(os.Args[1], "", 0, true)
-	items, err := os.ReadDir(root.baseName)
+	flag.Parse()
+
+	fmt.Println(*selectedDir)
+	root = NewNode(*selectedDir, "", 0, true)
+
+	items, err := os.ReadDir(root.FullPath())
 
 	if err != nil {
 		fmt.Println(err)
@@ -113,13 +132,25 @@ func createTree(items []fs.DirEntry, parent *Node) {
 		depth := parent.depth + 1
 
 		if isDir := item.IsDir(); isDir == true {
-			parentDir := parent.baseName + "/"
-			subDirNode := NewNode(item.Name(), parentDir, depth, true)
-			subDirFiles, _ := os.ReadDir(parentDir + item.Name())
+			//create node for subdirectory
+			if *showHiddenFiles == false && item.Name()[0] == byte('.') {
+				continue
+			}
+
+			subDirNode := NewNode(parent.FullPath(), item.Name(), depth, true)
+
+			//append node to parents subsdirectories
 			parent.subDirs = append(parent.subDirs, subDirNode)
+
+			//get all files within the subdirectory.
+			subDirFiles, _ := os.ReadDir(subDirNode.FullPath())
+
+			//recurse into subdirectory
 			createTree(subDirFiles, subDirNode)
 		} else {
-			parent.files = append(parent.files, NewNode(item.Name(), parent.baseName+"/", depth, false))
+			if *showHiddenFiles == false && item.Name()[0] != byte('.') {
+				parent.files = append(parent.files, NewNode(parent.baseName+"/", item.Name(), depth, false))
+			}
 		}
 	}
 }
