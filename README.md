@@ -1,7 +1,7 @@
 
 # Installing Tree
 
-![image](https://github.com/robert-ohurley/tree/assets/96722504/bfa12aed-5383-4a13-8e03-fbc54aed5d94)
+![image](https://github.com/robert-ohurley/tree/assets/96722504/9a3d2b8a-54a6-4dc0-b6b8-186c291d4f69)
 
 ## Prerequisites
 
@@ -37,10 +37,15 @@ Before you begin, make sure you have the following installed on your system:
    ```
 
 ## Options
-| Flag  | Description             | Param Type | Default Value |
-|-------|-------------------------|------------|---------------|
-| -d    | Select directory        | String     | Current Dir   |
-| -h    | Show hidden files       | Boolean    | False         |
+| Flag              | Description                        | Param Type | Default Value |
+|-------------------|------------------------------------|------------|---------------|
+| -d                | Select directory                   | String     | Current Dir   |
+| -h                | Show hidden files                  | Boolean    | False         |
+| -D                | Depth to traverse                  | Integer    | 10            |
+| -file-pointer     | String used to point to files      | String     | \|\--           |
+| -separator        | String used to separate lines      | String     | \|             |
+| -directory-color  | Color to print directories         | String     | blue          |
+| -fullpath         | Show full path name for directories| Boolean    | True          |
 
 
 Note. I just made this as a bit of fun.
