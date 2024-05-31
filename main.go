@@ -15,6 +15,7 @@ var maxDepth = flag.Int("D", 10, "Depth to traverse")
 var filePointer = flag.String("file-pointer", "|−-", "String used to point to files")
 var lineSeparator = flag.String("separator", "|", "String used to separate lines")
 var dirColor = flag.String("directory-color", "blue", "Color to print directories")
+var showFullPath = flag.Bool("fullpath", true, "Show full path name for directories")
 
 type Formatter struct {
 	strings.Builder
@@ -22,11 +23,19 @@ type Formatter struct {
 
 var sb = Formatter{}
 
+func (sb *Formatter) FormatPath(node *Node) string {
+	if node.depth == 0 || *showFullPath == true {
+		return node.FullPath()
+	}
+	return fmt.Sprint(node.baseName, "/")
+}
+
 func (sb *Formatter) GetIndentation(depth int, isDir bool) string {
 	sb.Reset()
 
-	for i := 0; i <= depth; i++ {
-		if isDir == true && i == depth {
+	for i := 0; i < depth; i++ {
+		if isDir == true && i+1 == depth {
+			sb.WriteString("|\t")
 			sb.WriteString("∟")
 		} else {
 			sb.WriteString(*lineSeparator)
@@ -103,9 +112,9 @@ func (s *Stack) print() {
 		indent := sb.GetIndentation(item.depth, item.isDir)
 
 		if item.isDir == true {
-			fmt.Println(indent, sb.ColorString(item.FullPath(), *dirColor))
+			fmt.Println(indent, sb.ColorString(sb.FormatPath(item), *dirColor))
 		} else {
-			fmt.Println(indent, "", item.baseName)
+			fmt.Println(indent, "", sb.FormatPath(item))
 		}
 	}
 }
@@ -173,13 +182,13 @@ func main() {
 
 func createTree(items []fs.DirEntry, parent *Node) {
 	for _, item := range items {
-		depth := parent.depth + 1
 
-		if depth > *maxDepth {
+		if parent.depth == *maxDepth-1 {
 			break
 		}
 
 		if isDir := item.IsDir(); isDir == true {
+			depth := parent.depth + 1
 			//create node for subdirectory
 			if *showHiddenFiles == false && item.Name()[0] == byte('.') {
 				continue
@@ -196,8 +205,12 @@ func createTree(items []fs.DirEntry, parent *Node) {
 			//recurse into subdirectory
 			createTree(subDirFiles, subDirNode)
 		} else {
-			if *showHiddenFiles == false && item.Name()[0] != byte('.') {
-				parent.files = append(parent.files, NewNode(parent.baseName+"/", item.Name(), depth, false))
+			depth := parent.depth
+
+			if *showHiddenFiles == false && item.Name()[0] == byte('.') {
+				continue
+			} else {
+				parent.files = append(parent.files, NewNode("/", item.Name(), depth, false))
 			}
 		}
 	}
