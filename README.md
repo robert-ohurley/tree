@@ -42,10 +42,25 @@ Before you begin, make sure you have the following installed on your system:
 | -d                | Select directory                   | String     | Current Dir   |
 | -h                | Show hidden files                  | Boolean    | False         |
 | -D                | Depth to traverse                  | Integer    | 10            |
-| -file-pointer     | String used to point to files      | String     | \|\--           |
-| -separator        | String used to separate lines      | String     | \|             |
-| -directory-color  | Color to print directories         | String     | blue          |
-| -fullpath         | Show full path name for directories| Boolean    | True          |
+| -separator        | Character used to separate lines   | String     | \|            |
+| --file-pointer    | String used to point to files      | String     | \|\--         |
+| --directory-color | Color to print directories         | String     | blue          |
+| --file-color       | Color to print files               | String     | white         |
+| -fullpath         | Show full path name for directories| Boolean    | false         |
+
+   
+   Alias your preferred settings by executing, for example, 
 
 
+   ```bash
+   echo "alias tree='tree -h=true -fullpath=true --directory-color=cyan'" >> ~/.bashrc
+   ```
+   
 Note. I just made this as a bit of fun.
+
+
+
+
+
+
+
