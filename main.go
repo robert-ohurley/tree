@@ -15,6 +15,7 @@ var maxDepth = flag.Int("D", 10, "Depth to traverse")
 var filePointer = flag.String("file-pointer", "|−-", "String used to point to files")
 var lineSeparator = flag.String("separator", "|", "String used to separate lines")
 var dirColor = flag.String("directory-color", "blue", "Color to print directories")
+var fileColor = flag.String("file-color", "white", "Color to print files")
 var showFullPath = flag.Bool("fullpath", true, "Show full path name for directories")
 
 type Formatter struct {
@@ -115,6 +116,7 @@ func (s *Stack) print() {
 			fmt.Println(indent, sb.ColorString(sb.FormatPath(item), *dirColor))
 		} else {
 			fmt.Println(indent, "", sb.FormatPath(item))
+			fmt.Println(indent, "", sb.ColorString(sb.FormatPath(item), *fileColor))
 		}
 	}
 }
