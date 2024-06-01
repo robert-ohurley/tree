@@ -28,7 +28,7 @@ func (sb *Formatter) FormatPath(node *Node) string {
 	if node.depth == 0 || *showFullPath == true {
 		return node.FullPath()
 	}
-	return fmt.Sprint(node.baseName, "/")
+	return fmt.Sprint(node.baseName)
 }
 
 func (sb *Formatter) GetIndentation(depth int, isDir bool) string {
@@ -36,7 +36,8 @@ func (sb *Formatter) GetIndentation(depth int, isDir bool) string {
 
 	for i := 0; i < depth; i++ {
 		if isDir == true && i+1 == depth {
-			sb.WriteString("|\t")
+			sb.WriteString(*lineSeparator)
+			sb.WriteString("\t")
 			sb.WriteString("∟")
 		} else {
 			sb.WriteString(*lineSeparator)
@@ -115,7 +116,6 @@ func (s *Stack) print() {
 		if item.isDir == true {
 			fmt.Println(indent, sb.ColorString(sb.FormatPath(item), *dirColor))
 		} else {
-			fmt.Println(indent, "", sb.FormatPath(item))
 			fmt.Println(indent, "", sb.ColorString(sb.FormatPath(item), *fileColor))
 		}
 	}
@@ -185,7 +185,8 @@ func main() {
 func createTree(items []fs.DirEntry, parent *Node) {
 	for _, item := range items {
 
-		if parent.depth == *maxDepth-1 {
+		//don't recurse greater that the max depth
+		if parent.depth+1 == *maxDepth {
 			break
 		}
 
@@ -207,6 +208,7 @@ func createTree(items []fs.DirEntry, parent *Node) {
 			//recurse into subdirectory
 			createTree(subDirFiles, subDirNode)
 		} else {
+			//depth remains same for files
 			depth := parent.depth
 
 			if *showHiddenFiles == false && item.Name()[0] == byte('.') {
