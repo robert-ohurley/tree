@@ -11,6 +11,7 @@ import (
 var dir, _ = os.Getwd()
 var showHiddenFiles = flag.Bool("h", false, "Show hidden files")
 var selectedDir = flag.String("d", dir, "Directory to print")
+var dirOnly = flag.Bool("dir-only", false, "Only print directories")
 var maxDepth = flag.Int("D", 10, "Depth to traverse")
 var filePointer = flag.String("file-pointer", "|−-", "String used to point to files")
 var lineSeparator = flag.String("separator", "|", "String used to separate lines")
@@ -207,7 +208,7 @@ func createTree(items []fs.DirEntry, parent *Node) {
 
 			//recurse into subdirectory
 			createTree(subDirFiles, subDirNode)
-		} else {
+		} else if *dirOnly == false {
 			//depth remains same for files
 			depth := parent.depth
 
