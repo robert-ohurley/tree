@@ -19,20 +19,20 @@ var dirColor = flag.String("directory-color", "blue", "Color to print directorie
 var fileColor = flag.String("file-color", "white", "Color to print files")
 var showFullPath = flag.Bool("fullpath", false, "Show full path name for directories")
 
-type Formatter struct {
+type Printer struct {
 	strings.Builder
 }
 
-var sb = Formatter{}
+var sb = Printer{}
 
-func (sb *Formatter) FormatPath(node *Node) string {
+func (sb *Printer) FormatPath(node *Node) string {
 	if node.depth == 0 || *showFullPath == true {
 		return node.FullPath()
 	}
 	return fmt.Sprint(node.baseName)
 }
 
-func (sb *Formatter) GetIndentation(depth int, isDir bool) string {
+func (sb *Printer) GetIndentation(depth int, isDir bool) string {
 	sb.Reset()
 
 	for i := 0; i < depth; i++ {
@@ -53,7 +53,7 @@ func (sb *Formatter) GetIndentation(depth int, isDir bool) string {
 	return sb.String()
 }
 
-func (sb *Formatter) ColorString(text string, color string) string {
+func (sb *Printer) ColorString(text string, color string) string {
 	end := "\033[0m"
 
 	switch color {
@@ -94,34 +94,6 @@ func (sb *Formatter) ColorString(text string, color string) string {
 	}
 }
 
-type Stack struct {
-	stack []*Node
-}
-
-var stack = Stack{}
-
-func (s *Stack) push(n *Node) {
-	s.stack = append(s.stack, n)
-}
-
-func (s *Stack) pop() *Node {
-	n := s.stack[len(s.stack)-1]
-	s.stack = s.stack[0 : len(s.stack)-1]
-	return n
-}
-
-func (s *Stack) print() {
-	for _, item := range s.stack {
-		indent := sb.GetIndentation(item.depth, item.isDir)
-
-		if item.isDir == true {
-			fmt.Println(indent, sb.ColorString(sb.FormatPath(item), *dirColor))
-		} else {
-			fmt.Println(indent, "", sb.ColorString(sb.FormatPath(item), *fileColor))
-		}
-	}
-}
-
 type Node struct {
 	baseName   string
 	parentName string
@@ -153,15 +125,25 @@ func NewNode(parentName, baseName string, depth int, isDir bool) *Node {
 	}
 }
 
+func (n *Node) Print() {
+	indent := sb.GetIndentation(n.depth, n.isDir)
+
+	if n.isDir == true {
+		fmt.Println(indent, sb.ColorString(sb.FormatPath(n), *dirColor))
+	} else {
+		fmt.Println(indent, "", sb.ColorString(sb.FormatPath(n), *fileColor))
+	}
+}
+
 func dfs(node *Node) {
-	stack.push(node)
+	node.Print()
 
 	for _, item := range node.subDirs {
 		dfs(item)
 	}
 
 	for _, item := range node.files {
-		stack.push(item)
+		item.Print()
 	}
 }
 
@@ -180,7 +162,6 @@ func main() {
 
 	createTree(items, root)
 	dfs(root)
-	stack.print()
 }
 
 func createTree(items []fs.DirEntry, parent *Node) {
