@@ -42,11 +42,12 @@ Before you begin, make sure you have the following installed on your system:
 | -d                | Select directory                   | String     | Current Dir   |
 | -h                | Show hidden files                  | Boolean    | False         |
 | -D                | Depth to traverse                  | Integer    | 10            |
+| -fullpath         | Show full path name for directories| Boolean    | false         |
 | -separator        | Character used to separate lines   | String     | \|            |
 | --file-pointer    | String used to point to files      | String     | \|\--         |
 | --directory-color | Color to print directories         | String     | blue          |
-| --file-color       | Color to print files               | String     | white         |
-| -fullpath         | Show full path name for directories| Boolean    | false         |
+| --file-color      | Color to print files               | String     | white         |
+| --dir-only        | Only print directories             | Boolean    | false         |
 
    
    Alias your preferred settings by executing, for example, 
